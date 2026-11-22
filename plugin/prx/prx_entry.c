@@ -17,7 +17,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://gnu.org>.
  *
- * PRX module descriptor compatible with PSL1GHT lv2-sprx.o & sprxlinker.
+ * PRX module descriptor (module_start / module_stop are in source/main.c).
  */
 
 #include <stddef.h>
@@ -28,10 +28,6 @@
 /* Engraved in the binary so it survives strip. */
 const char dmmusic_copyright[] __attribute__((used)) = DMMUSIC_COPYRIGHT;
 
-extern int dmmusic_start(size_t args, void *argp);
-extern int dmmusic_stop(size_t args, void *argp);
-
-/* Standard PS3 PRX module_info structure expected by sprxlinker / lv2-sprx.o */
 typedef struct {
     uint16_t modattribute;
     uint8_t  modversion[2];
@@ -61,14 +57,3 @@ const _scemoduleinfo module_info
     &__libc_start_libstub,
     &__libc_stop_libstub
 };
-
-/* Entry points called by lv2-sprx.o */
-int module_start(size_t args, void *argp)
-{
-    return dmmusic_start(args, argp);
-}
-
-int module_stop(size_t args, void *argp)
-{
-    return dmmusic_stop(args, argp);
-}
