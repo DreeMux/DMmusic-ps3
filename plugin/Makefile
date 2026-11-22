@@ -70,11 +70,11 @@ $(BUILD):
 
 $(BUILD)/dm_libc.o: $(SRCDIR)/dm_libc.c | $(BUILD)
 	@echo "  CC   $<"
-	@ppu-gcc $(DM_CFLAGS) -fno-builtin -fno-tree-loop-distribute-patterns -c $< -o $@
+	@$(CC) $(CFLAGS) -I$(INCDIR) -I$(SRCDIR) -fno-builtin -c $< -o $@
 
 $(BUILD)/%.o: $(SRCDIR)/%.c | $(BUILD)
 	@echo "  CC   $<"
-	@ppu-gcc $(DM_CFLAGS) -c $< -o $@
+	@$(CC) $(CFLAGS) -I$(INCDIR) -I$(SRCDIR) -c $< -o $@
 
 ifneq ($(wildcard prx/link.mk),)
 include prx/link.mk
