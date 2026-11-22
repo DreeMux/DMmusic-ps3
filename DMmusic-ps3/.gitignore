@@ -1,0 +1,17 @@
+# Build output
+pkg/build/
+plugin/build/
+*.elf
+*.self
+*.pkg
+*.sprx
+*.map
+*.o
+*.d
+
+# Audio (never commit music)
+*.mp3
+*.wav
+
+# Fetched by CI (https://github.com/mackron/dr_libs) - do not commit
+plugin/include/dr_mp3.h

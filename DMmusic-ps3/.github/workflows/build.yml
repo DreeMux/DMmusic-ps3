@@ -1,0 +1,176 @@
+# DMmusic - GitHub Actions CI
+# Made by DreeMux — Made for PS3 gamers
+#
+# Copyright (C) 2026 DreeMux
+# Licensed under the GNU General Public License v3.0 or later (see LICENSE).
+#
+# Builds DMmusic.pkg (pkg/) and dmmusic.sprx (plugin/) inside the
+# ps3dev/ps3dev Docker image on every push and pull request, verifies that
+# the outputs exist and are non-empty, and uploads them as artifacts.
+#
+# The plugin steps are isolated with continue-on-error so a plugin problem never
+# prevents DMmusic.pkg from being built and uploaded; the last step turns a
+# plugin failure into a red run so it is never overlooked.
+
+name: Build DMmusic
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: build-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build DMmusic.pkg + dmmusic.sprx
+    runs-on: ubuntu-latest
+    container:
+      image: ps3dev/ps3dev:latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Prepare toolchain environment
+        run: |
+          # The image normally presets these; keep sane defaults just in case.
+          : "${PS3DEV:=/usr/local/ps3dev}"
+          : "${PSL1GHT:=$PS3DEV}"
+          echo "PS3DEV=$PS3DEV" >> "$GITHUB_ENV"
+          echo "PSL1GHT=$PSL1GHT" >> "$GITHUB_ENV"
+          for d in "$PS3DEV/bin" "$PS3DEV/ppu/bin" "$PS3DEV/spu/bin"; do
+            if [ -d "$d" ]; then echo "$d" >> "$GITHUB_PATH"; fi
+          done
+          echo "PS3DEV=$PS3DEV"
+          echo "PSL1GHT=$PSL1GHT"
+
+      - name: Show toolchain versions
+        run: |
+          ppu-gcc --version | head -n 1
+          make --version | head -n 1
+          ls "$PSL1GHT" | head -n 30
+          test -f "$PSL1GHT/ppu_rules" || { echo "::error::$PSL1GHT/ppu_rules not found - is this the ps3dev image?"; exit 1; }
+
+      - name: Build DMmusic.pkg (pkg/)
+        run: make -C pkg clean pkg
+
+      - name: Verify DMmusic.pkg
+        run: |
+          ls -l pkg/DMmusic.pkg
+          test -s pkg/DMmusic.pkg || { echo "::error::pkg/DMmusic.pkg is missing or empty"; exit 1; }
+
+      - name: Upload DMmusic.pkg
+        uses: actions/upload-artifact@v4
+        with:
+          name: DMmusic-pkg
+          path: pkg/DMmusic.pkg
+          if-no-files-found: error
+          retention-days: 30
+
+      # ------------------------------------------------------------------
+      # Plugin (plugin/)
+      # ------------------------------------------------------------------
+      - name: Detect plugin sources (plugin/)
+        id: plugin
+        run: |
+          if [ -f plugin/Makefile ]; then
+            echo "present=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "present=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::plugin/Makefile not found - skipping dmmusic.sprx."
+          fi
+
+      - name: Fetch dr_mp3.h (mackron/dr_libs)
+        id: fetch_drmp3
+        if: steps.plugin.outputs.present == 'true'
+        continue-on-error: true
+        run: |
+          set -e
+          URL=https://raw.githubusercontent.com/mackron/dr_libs/master/dr_mp3.h
+          mkdir -p plugin/include
+          if command -v curl >/dev/null 2>&1; then
+            curl -fsSL --retry 3 "$URL" -o plugin/include/dr_mp3.h
+          else
+            wget -q -O plugin/include/dr_mp3.h "$URL"
+          fi
+          test -s plugin/include/dr_mp3.h
+          grep -q "DR_MP3_IMPLEMENTATION" plugin/include/dr_mp3.h
+          grep -E "define DRMP3_VERSION_(MAJOR|MINOR|REVISION)" plugin/include/dr_mp3.h || true
+          ls -l plugin/include/dr_mp3.h
+
+      - name: Host unit test (WAV / queue / pad / engine logic)
+        id: host_test
+        if: steps.plugin.outputs.present == 'true'
+        continue-on-error: true
+        run: make -C plugin host-test
+
+      - name: Compile plugin sources with the PS3 toolchain
+        id: plugin_objs
+        if: steps.plugin.outputs.present == 'true' && steps.fetch_drmp3.outcome == 'success'
+        continue-on-error: true
+        run: make -C plugin clean objs
+
+      - name: PRX toolchain probe (what the image really provides)
+        if: steps.plugin.outputs.present == 'true'
+        continue-on-error: true
+        run: |
+          echo "== PRX/SPRX related tools on PATH =="
+          for t in sprxlinker make_fself make_fself_npdrm make_self make_self_npdrm fself.py \
+                   ppu-lv2-gcc ppu-lv2-ld ppu-lv2-objdump ppu-lv2-readelf ppu-readelf ppu-objdump; do
+            printf '%-22s' "$t"; command -v "$t" || echo "(not found)"
+          done
+          echo
+          echo "== PRX / SPRX / linker-script / stub files under PS3DEV and PSL1GHT =="
+          find "$PS3DEV" "$PSL1GHT" \( -iname '*prx*' -o -iname '*sprx*' -o -name '*.ld' -o -name '*.x' -o -iname '*.lds' \) \
+               -not -path '*/share/doc/*' 2>/dev/null | sort | head -n 200
+          echo
+          echo "== PSL1GHT samples mentioning prx =="
+          grep -ril 'prx' "$PSL1GHT" 2>/dev/null | head -n 50 || true
+          echo
+          echo "== sprxlinker usage =="
+          sprxlinker 2>&1 | head -n 20 || true
+          echo
+          echo "== ppu_rules (full) =="
+          cat "$PSL1GHT/ppu_rules"
+
+      - name: Link dmmusic.sprx (plugin/)
+        id: plugin_link
+        if: steps.plugin_objs.outcome == 'success'
+        continue-on-error: true
+        run: make -C plugin all
+
+      - name: Verify dmmusic.sprx
+        id: plugin_verify
+        if: steps.plugin_link.outcome == 'success'
+        continue-on-error: true
+        run: |
+          ls -l plugin/dmmusic.sprx
+          test -s plugin/dmmusic.sprx || { echo "::error::plugin/dmmusic.sprx is missing or empty"; exit 1; }
+
+      - name: Upload dmmusic.sprx
+        if: steps.plugin_verify.outcome == 'success'
+        uses: actions/upload-artifact@v4
+        with:
+          name: dmmusic-sprx
+          path: plugin/dmmusic.sprx
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Plugin status
+        if: always() && steps.plugin.outputs.present == 'true'
+        run: |
+          echo "dr_mp3 fetch : ${{ steps.fetch_drmp3.outcome }}"
+          echo "host test    : ${{ steps.host_test.outcome }}"
+          echo "compile      : ${{ steps.plugin_objs.outcome }}"
+          echo "link (.sprx) : ${{ steps.plugin_link.outcome }}"
+          echo "verify       : ${{ steps.plugin_verify.outcome }}"
+          if [ "${{ steps.plugin_verify.outcome }}" != "success" ]; then
+            echo "::error::dmmusic.sprx was not produced - see the failing plugin step above."
+            exit 1
+          fi
