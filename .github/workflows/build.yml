@@ -104,18 +104,6 @@ jobs:
           rm -rf _dr_libs_tmp
           test -s plugin/include/dr_mp3.h
 
-          URL=https://raw.githubusercontent.com/mackron/dr_libs/master/dr_mp3.h
-          mkdir -p plugin/include
-          if command -v curl >/dev/null 2>&1; then
-            curl -fsSL --retry 3 "$URL" -o plugin/include/dr_mp3.h
-          else
-            wget -q -O plugin/include/dr_mp3.h "$URL"
-          fi
-          test -s plugin/include/dr_mp3.h
-          grep -q "DR_MP3_IMPLEMENTATION" plugin/include/dr_mp3.h
-          grep -E "define DRMP3_VERSION_(MAJOR|MINOR|REVISION)" plugin/include/dr_mp3.h || true
-          ls -l plugin/include/dr_mp3.h
-
       - name: Host unit test (WAV / queue / pad / engine logic)
         id: host_test
         if: steps.plugin.outputs.present == 'true'
