@@ -18,12 +18,10 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * PRX module descriptor. The entry/exit bodies live in source/main.c.
- * NOTE: if source/main.c already contains SYS_MODULE_INFO/START/STOP,
- * remove them there (a module descriptor may exist only once).
  */
 
 #include <stddef.h>
-#include <sys/prx.h>
+#include <lv2/prx.h>
 
 #define DMMUSIC_COPYRIGHT "Made by DreeMux - Made for PS3 gamers (GPL-3.0-or-later)"
 
