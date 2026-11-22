@@ -91,7 +91,10 @@ jobs:
         if: steps.plugin.outputs.present == 'true'
         continue-on-error: true
         run: |
-          set -e
+          mkdir -p plugin/include
+          python3 -c "import urllib.request; urllib.request.urlretrieve('https://githubusercontent.com', 'plugin/include/dr_mp3.h')"
+          test -s plugin/include/dr_mp3.h
+
           URL=https://raw.githubusercontent.com/mackron/dr_libs/master/dr_mp3.h
           mkdir -p plugin/include
           if command -v curl >/dev/null 2>&1; then
