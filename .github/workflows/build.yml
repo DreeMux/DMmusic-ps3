@@ -31,7 +31,7 @@ jobs:
     name: Build DMmusic.pkg + dmmusic.sprx
     runs-on: ubuntu-latest
     container:
-      image: ps3dev/ps3dev:latest
+      image: zeldin/ps3dev-docker:latest
 
     steps:
       - name: Checkout
