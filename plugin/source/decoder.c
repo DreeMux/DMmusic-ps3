@@ -270,9 +270,14 @@ static size_t mp3_on_read(void *user, void *dst, size_t n)
 
 static drmp3_bool32 mp3_on_seek(void *user, int offset, drmp3_seek_origin origin)
 {
+    int whence = DM_SEEK_CUR;
     (void)user;
-    return dm_fs_seek(g_fd, offset,
-                      origin == drmp3_seek_origin_start ? DM_SEEK_SET : DM_SEEK_CUR, NULL) == 0
+    if (origin == DRMP3_SEEK_SET) {
+        whence = DM_SEEK_SET;
+    } else if (origin == DRMP3_SEEK_END) {
+        whence = 2; /* SEEK_END in LV2 sys_fs_lseek */
+    }
+    return dm_fs_seek(g_fd, offset, whence, NULL) == 0
                ? DRMP3_TRUE : DRMP3_FALSE;
 }
 
