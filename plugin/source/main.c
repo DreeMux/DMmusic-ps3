@@ -82,20 +82,25 @@ static int rd_open(reader_t *r, const char *path)
     return dm_fs_open_ro(path, &r->fd);
 }
 
+static int rd_refill(reader_t *r)
+{
+    uint32_t got = 0;
+    if (dm_fs_read(r->fd, r->buf, DM_IO_CHUNK, &got) != 0 || got == 0)
+        return 0;
+    r->len = got;
+    r->pos = 0;
+    return 1;
+}
+
 static int rd_byte(reader_t *r)
 {
     uint8_t c;
-    if (r->pos >= r->len) {
-        uint32_t got = 0;
-        if (dm_fs_read(r->fd, r->buf, DM_IO_CHUNK, &got) != 0 || got == 0)
-            return -1;
-        r->len = got;
-        r->pos = 0;
-    }
+    if (r->pos >= r->len && !rd_refill(r))
+        return -1;
     c = r->buf[r->pos++];
-    r->hash = (r->hash ^ c) * 16777619u;
-    r->size++;
-    return c;
+    r->hash = (r->hash ^ (uint32_t)c) * 16777619u;
+    r->size = r->size + 1u;
+    return (int)c;
 }
 
 /* Reads one line (without the line ending).  Over-long lines are truncated.
