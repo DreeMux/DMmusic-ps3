@@ -89,10 +89,19 @@ jobs:
       - name: Fetch dr_mp3.h (mackron/dr_libs)
         id: fetch_drmp3
         if: steps.plugin.outputs.present == 'true'
-        continue-on-error: true
+        uses: actions/checkout@v4
+        with:
+          repository: mackron/dr_libs
+          path: _dr_libs_tmp
+          sparse-checkout: dr_mp3.h
+          sparse-checkout-cone-mode: false
+
+      - name: Copy dr_mp3.h into plugin/include
+        if: steps.plugin.outputs.present == 'true'
         run: |
           mkdir -p plugin/include
-          python3 -c "import urllib.request; urllib.request.urlretrieve('https://githubusercontent.com', 'plugin/include/dr_mp3.h')"
+          cp _dr_libs_tmp/dr_mp3.h plugin/include/dr_mp3.h
+          rm -rf _dr_libs_tmp
           test -s plugin/include/dr_mp3.h
 
           URL=https://raw.githubusercontent.com/mackron/dr_libs/master/dr_mp3.h
