@@ -49,8 +49,8 @@ SRCS     := main.c audio_engine.c pad_hook.c decoder.c dm_sys.c dm_libc.c
 OBJS     := $(addprefix $(BUILD)/,$(SRCS:.c=.o))
 
 # Small, freestanding, position-independent friendly flags.
-DM_CFLAGS := -O2 -Wall -Wextra -Wno-unused-function -std=gnu99 \
-             -ffunction-sections -fdata-sections \
+DM_CFLAGS := -O0 -fno-omit-frame-pointer -mno-multiple -mno-string \
+             -Wall -Wextra -Wno-unused-function -std=gnu99 \
              -I$(INCDIR) -I$(SRCDIR)
 
 .DEFAULT_GOAL := all
@@ -68,14 +68,13 @@ objs: check-deps $(OBJS)
 $(BUILD):
 	@mkdir -p $@
 
-# dm_libc.c must not be "optimised" into calls to the functions it defines.
 $(BUILD)/dm_libc.o: $(SRCDIR)/dm_libc.c | $(BUILD)
 	@echo "  CC   $<"
-	@$(CC) $(DM_CFLAGS) -fno-builtin -fno-tree-loop-distribute-patterns -c $< -o $@
+	@ppu-gcc $(DM_CFLAGS) -fno-builtin -fno-tree-loop-distribute-patterns -c $< -o $@
 
 $(BUILD)/%.o: $(SRCDIR)/%.c | $(BUILD)
 	@echo "  CC   $<"
-	@$(CC) $(DM_CFLAGS) -c $< -o $@
+	@ppu-gcc $(DM_CFLAGS) -c $< -o $@
 
 ifneq ($(wildcard prx/link.mk),)
 include prx/link.mk
