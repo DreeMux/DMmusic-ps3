@@ -49,7 +49,7 @@ SRCS     := main.c audio_engine.c pad_hook.c decoder.c dm_sys.c dm_libc.c
 OBJS     := $(addprefix $(BUILD)/,$(SRCS:.c=.o))
 
 # Small, freestanding, position-independent friendly flags.
-DM_CFLAGS := -O2 -Wall -Wextra -Wno-unused-function -std=gnu99 -mcpu=cell \
+DM_CFLAGS := -O1 -Wall -Wextra -Wno-unused-function -std=gnu99 -mcpu=cell \
              -ffunction-sections -fdata-sections \
              -fno-stack-protector -fno-exceptions -fno-asynchronous-unwind-tables \
              -I$(INCDIR) -I$(SRCDIR)
