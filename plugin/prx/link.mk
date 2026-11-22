@@ -77,10 +77,10 @@ $(DM_OBJDIR)/vsh_stubs.o: prx/vsh_stubs.S | $(DM_OBJDIR)
 	$(DM_CC) $(DM_ASFLAGS) -c $< -o $@
 
 $(DM_ELF): $(DM_OBJS) $(DM_PRXOBJS)
-	@test -f $(DM_LV2_LD) || { echo "missing $(DM_LV2_LD)"; exit 1; }
-	$(DM_CC) $(DM_LDFLAGS) $(DM_OBJS) $(DM_PRXOBJS) $(DM_LIBS) -o $@
-	$(DM_STRIP) -s $@
+	@test -f $(DM_SPRX_O) || { echo "missing $(DM_SPRX_O)"; exit 1; }
+	$(DM_CC) $(DM_LDFLAGS) $(DM_SPRX_O) $(DM_OBJS) $(DM_PRXOBJS) $(DM_LIBS) -o $@
 	$(DM_SPRXLNK) $@
+	$(DM_STRIP) -s $@
 
 $(DM_SPRX): $(DM_ELF)
 	@if [ -x $(DM_FSELF) ]; then \
