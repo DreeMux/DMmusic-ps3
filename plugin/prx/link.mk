@@ -53,7 +53,7 @@ else
 DM_LIBS    := -L$(PSL1GHT)/ppu/lib -laudio -lio -lsysutil -llv2 -lgcc
 endif
 
-DM_CFLAGS  := -2s -mcpu=cell -ffunction-sections -fdata-sections \
+DM_CFLAGS  := -O2 -mcpu=cell -ffunction-sections -fdata-sections \
               -fno-builtin -fno-stack-protector -Wall \
               -Iinclude -I$(PSL1GHT)/ppu/include
 DM_ASFLAGS := -mcpu=cell -Iinclude -I$(PSL1GHT)/ppu/include
