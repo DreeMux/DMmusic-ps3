@@ -323,9 +323,10 @@ static int audio_open(void)
 
     p.nChannel = OUT_CHANNELS;
     p.nBlock   = BLOCK_COUNT;
-    p.attr     = 0;
+    p.attr     = 0x1000ULL; /* CELL_AUDIO_PORTATTR_INITLEVEL */
     p.level    = 1.0f;
     if (cellAudioPortOpen(&p, &g_port) != 0) goto fail;
+
     g_port_open = 1;
     memset(&g_cfg, 0, sizeof(g_cfg));
     if (cellAudioGetPortConfig(g_port, &g_cfg) != 0) goto fail;
