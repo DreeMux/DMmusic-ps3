@@ -317,20 +317,27 @@ static int audio_open(void)
     dm_audio_port_param_t p;
     int32_t rc;
 
+    dm_log("audio_open: calling cellAudioInit\n");
     rc = cellAudioInit();
+    dm_log_hex("cellAudioInit rc=", (uint32_t)rc);
     if (rc == 0) g_audio_we_inited = 1;
     else if ((uint32_t)rc != DM_AUDIO_ERR_ALREADY_INIT) return -1;
 
     p.nChannel = OUT_CHANNELS;
     p.nBlock   = BLOCK_COUNT;
-    p.attr     = 0x1000ULL; /* CELL_AUDIO_PORTATTR_INITLEVEL */
+    p.attr     = 0x1000ULL;
     p.level    = 1.0f;
-    if (cellAudioPortOpen(&p, &g_port) != 0) goto fail;
+    rc = cellAudioPortOpen(&p, &g_port);
+    dm_log_hex("cellAudioPortOpen rc=", (uint32_t)rc);
+    if (rc != 0) goto fail;
 
     g_port_open = 1;
     memset(&g_cfg, 0, sizeof(g_cfg));
-    if (cellAudioGetPortConfig(g_port, &g_cfg) != 0) goto fail;
+    rc = cellAudioGetPortConfig(g_port, &g_cfg);
+    dm_log_hex("cellAudioGetPortConfig rc=", (uint32_t)rc);
+    if (rc != 0) goto fail;
     if (g_cfg.portAddr == 0 || g_cfg.readIndexAddr == 0) goto fail;
+    dm_log("audio_open: SUCCESS\n");
     return 0;
 
 fail:
