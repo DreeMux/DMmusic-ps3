@@ -87,4 +87,7 @@ int32_t cellAudioPortStop(uint32_t portNum);
 int32_t cellAudioGetPortConfig(uint32_t portNum, dm_audio_port_config_t *cfg);
 int32_t cellPadGetData(uint32_t port, dm_pad_data_t *data);
 
+void dm_log(const char *msg);
+void dm_log_hex(const char *label, uint32_t val);
+
 #endif /* DM_SYS_H */
