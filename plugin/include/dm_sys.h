@@ -76,7 +76,7 @@ typedef struct {
     uint16_t button[64];      /* [2] = digital 1, [3] = digital 2 */
 } dm_pad_data_t;
 
-#define DM_AUDIO_ERR_ALREADY_INIT 0x80310702u
+#define DM_AUDIO_ERR_ALREADY_INIT 0x80310701u
 
 int32_t cellAudioInit(void);
 int32_t cellAudioQuit(void);
