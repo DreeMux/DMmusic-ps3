@@ -167,4 +167,35 @@ void dm_sleep_ms(uint32_t ms)
     dm_sc(SC_TIMER_USLEEP, (uint64_t)ms * 1000ull, 0, 0, 0, 0, 0, 0);
 }
 
+#define SC_FS_WRITE        803
+#define SC_PRX_LOAD_MODULE 480
+#define SC_PRX_START_MODULE 481
+
+void dm_log(const char *msg)
+{
+    int32_t f = -1;
+    uint32_t len = 0;
+    uint64_t wr = 0;
+    while (msg[len]) len++;
+    /* O_WRONLY | O_CREAT | O_APPEND = 0x401 */
+    if ((int32_t)dm_sc(SC_FS_OPEN, P("/dev_hdd0/tmp/dmmusic.log"), 0x401, P(&f), 0666, 0, 0, 0) == 0 && f >= 0) {
+        dm_sc(SC_FS_WRITE, (uint64_t)(int64_t)f, P(msg), len, P(&wr), 0, 0, 0);
+        dm_sc(SC_FS_CLOSE, (uint64_t)(int64_t)f, 0, 0, 0, 0, 0, 0);
+    }
+}
+
+void dm_log_hex(const char *label, uint32_t val)
+{
+    char buf[64];
+    const char *hex = "0123456789ABCDEF";
+    uint32_t i = 0;
+    int s;
+    while (label[i] && i < 48) { buf[i] = label[i]; i++; }
+    buf[i++] = '0'; buf[i++] = 'x';
+    for (s = 28; s >= 0; s -= 4) buf[i++] = hex[(val >> s) & 0xFu];
+    buf[i++] = '\n';
+    buf[i] = '\0';
+    dm_log(buf);
+}
+
 #endif /* DM_HOST */
