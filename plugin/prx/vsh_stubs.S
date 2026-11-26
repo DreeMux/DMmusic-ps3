@@ -166,4 +166,31 @@
 	IMPORT_FUNC _sys_printf,			.Lfs__sys_printf
 	IMPORT_FUNC sys_prx_exitspawn_with_level,	.Lfs_sys_prx_exitspawn_with_level
 
+/* ---------------- PRX Module Exports (module_start / module_stop) ---------------- */
+        .section .rodata.sceFNID, "a", @progbits
+        .align 2
+.Lexport_nid:
+        .long 0xBC9A0086        /* module_start */
+        .long 0xAB779874        /* module_stop  */
+
+        .section .rodata.sceFStub, "aw", @progbits
+        .align 2
+.Lexport_func:
+        .long module_start
+        .long module_stop
+
+        .section .lib.ent, "a", @progbits
+        .align 2
+        .byte 0x1C              /* struct size = 28 bytes */
+        .byte 0
+        .short 0x0001
+        .short 0x8000           /* SYS_LIB_AUTO_EXPORT */
+        .short 2                /* 2 exported functions */
+        .short 0                /* 0 variables */
+        .short 0
+        .byte 0, 0, 0, 0
+        .long 0                 /* NULL name = resident module entry table */
+        .long .Lexport_nid
+        .long .Lexport_func
+
 	.section .note.GNU-stack, "", @progbits
