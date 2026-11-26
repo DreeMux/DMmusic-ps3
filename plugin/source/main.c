@@ -284,3 +284,16 @@ int module_start(uint64_t args, void *argp)
     g_worker_valid = 1;
     return DM_PRX_START_OK;
 }
+
+__attribute__((used))
+int module_stop(uint64_t args, void *argp)
+{
+    (void)args; (void)argp;
+    dm_log("module_stop: called\n");
+    g_running = 0;
+    if (g_worker_valid) {
+        dm_thread_join(g_worker);
+        g_worker_valid = 0;
+    }
+    return DM_PRX_STOP_OK;
+}
