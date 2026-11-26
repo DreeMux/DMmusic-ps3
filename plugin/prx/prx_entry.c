@@ -24,14 +24,12 @@
 #include <stdint.h>
 
 #define DMMUSIC_COPYRIGHT "Made by DreeMux - Made for PS3 gamers (GPL-3.0-or-later)"
-
-/* Engraved in the binary so it survives strip. */
 const char dmmusic_copyright[] __attribute__((used)) = DMMUSIC_COPYRIGHT;
 
 typedef struct {
     uint16_t modattribute;
-    uint8_t  modversion[2];
-    char     modname[27];
+    uint8_t  modversion;
+    char     modname;
     uint8_t  terminal;
     void    *gp_value;
     void    *ent_top;
@@ -58,3 +56,22 @@ const _scemoduleinfo module_info
     &_dm_stub_end
 };
 
+/* Standard 40-byte LV2 PRX parameter header (replaces lv2-sprx.o) */
+typedef struct {
+    uint32_t size;
+    uint32_t magic;
+    uint32_t version;
+    uint32_t sdk_version;
+    uint32_t module_info;
+    uint32_t reserved;
+} _sys_prx_param_t;
+
+const _sys_prx_param_t _sys_proc_prx_param
+    __attribute__((section(".sys_proc_prx_param"), used)) = {
+    0x28,
+    0x1B434CEC,
+    0x00000001,
+    0x00400001,
+    0,
+    { 0, 0, 0, 0, 0 }
+};
