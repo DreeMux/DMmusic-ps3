@@ -150,10 +150,8 @@ jobs:
         if: steps.plugin_link.outcome == 'success'
         continue-on-error: true
         run: |
-          $PS3DEV/bin/fself --help || true
-          strings $PS3DEV/bin/fself | grep -E "prx|sprx|0x|usage|Usage" || true
-          strings $PS3DEV/bin/make_self | grep -E "prx|sprx|0x|usage|Usage" || true
-          $PS3DEV/bin/fself plugin/prx/dmmusic.elf /tmp/test.sprx || true
+          ls -l plugin/dmmusic.sprx
+          ppu-readelf -h -l plugin/dmmusic.sprx || true
           test -s plugin/dmmusic.sprx || { echo "::error::plugin/dmmusic.sprx is missing or empty"; exit 1; }
 
       - name: Upload dmmusic.sprx
