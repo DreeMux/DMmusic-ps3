@@ -40,10 +40,10 @@ typedef struct {
     void    *stub_end;
 } _scemoduleinfo;
 
-extern uint32_t __libc_start_libent __attribute__((weak));
-extern uint32_t __libc_stop_libent  __attribute__((weak));
-extern uint32_t __libc_start_libstub __attribute__((weak));
-extern uint32_t __libc_stop_libstub  __attribute__((weak));
+extern uint32_t _dm_ent_top;
+extern uint32_t _dm_ent_end;
+extern uint32_t _dm_stub_top;
+extern uint32_t _dm_stub_end;
 
 const _scemoduleinfo module_info
     __attribute__((section(".rodata.sceModuleInfo"), used)) = {
@@ -52,8 +52,9 @@ const _scemoduleinfo module_info
     "DMmusic",
     0,
     0,
-    &__libc_start_libent,
-    &__libc_stop_libent,
-    &__libc_start_libstub,
-    &__libc_stop_libstub
+    &_dm_ent_top,
+    &_dm_ent_end,
+    &_dm_stub_top,
+    &_dm_stub_end
 };
+
