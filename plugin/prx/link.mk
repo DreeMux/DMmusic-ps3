@@ -84,6 +84,7 @@ $(DM_ELF): $(DM_OBJS) $(DM_PRXOBJS)
 $(DM_SPRX): $(DM_ELF)
 	python3 -c 'import struct; d=bytearray(open("$<","rb").read()); struct.pack_into(">H",d,16,0xFFA4); open("$<.prx.elf","wb").write(d)'
 	$(DM_MAKESELF) $<.prx.elf $@
+	python3 -c 'import struct; d=bytearray(open("$@","rb").read()); struct.pack_into(">Q",d,0x70,0x1070000052000001); struct.pack_into(">I",d,0x7C,6); open("$@","wb").write(d)'
 	@ls -l $@
 
 clean-prx:
