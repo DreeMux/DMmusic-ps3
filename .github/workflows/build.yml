@@ -151,9 +151,8 @@ jobs:
         continue-on-error: true
         run: |
           ls -l plugin/dmmusic.sprx
-          ppu-readelf -l plugin/prx/dmmusic.elf || true
-          $PS3DEV/bin/fself --help || true
-          $PS3DEV/bin/make_self --help || true
+          find $PS3DEV -iname "*prx*" -o -iname "*sprx*" 2>/dev/null | head -n 40
+          $PS3DEV/bin/scetool -i plugin/dmmusic.sprx || true
           test -s plugin/dmmusic.sprx || { echo "::error::plugin/dmmusic.sprx is missing or empty"; exit 1; }
 
       - name: Upload dmmusic.sprx
