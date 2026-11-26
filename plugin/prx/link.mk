@@ -17,9 +17,6 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #
 # Included from plugin/Makefile with:  -include prx/link.mk
-# Self-contained: builds its own objects in prx/obj/, so it does not depend
-# on variable names used by the parent Makefile.
-#
 # Usage:  make -C plugin clean all
 
 PS3DEV   ?= /usr/local/ps3dev
@@ -30,11 +27,13 @@ DM_BIN     := $(PS3DEV)/bin
 DM_PPUBIN  := $(PS3DEV)/ppu/bin
 export PATH := $(DM_BIN):$(DM_PPUBIN):$(PATH)
 
+DM_PPULIB  := $(PS3DEV)/ppu/powerpc64-ps3-elf/lib
+DM_LV2_LD  := $(DM_PPULIB)/lv2.ld
+
 DM_CC      := ppu-gcc
 DM_LD      := ppu-ld
 DM_SPRXLNK := $(DM_BIN)/sprxlinker
 DM_FSELF   := $(DM_BIN)/fself
-DM_MAKESELF:= $(DM_BIN)/make_self
 
 DM_SRC     := $(wildcard source/*.c)
 DM_OBJDIR  := prx/obj
@@ -46,7 +45,9 @@ DM_CFLAGS  := -O2 -mcpu=cell -ffunction-sections -fdata-sections \
               -fno-builtin -fno-stack-protector -Wall \
               -Iinclude -I$(PSL1GHT)/ppu/include
 DM_ASFLAGS := -mcpu=cell -Iinclude -I$(PSL1GHT)/ppu/include
-DM_LDFLAGS := -q -T prx/prx.ld -e module_start
+
+DM_AUTO_LD := prx/auto_prx.ld
+DM_LDFLAGS := -q -T $(DM_AUTO_LD) -e module_start
 
 DM_ELF     := prx/dmmusic.elf
 DM_SPRX    := dmmusic.sprx
@@ -55,6 +56,9 @@ all: $(DM_SPRX)
 
 $(DM_OBJDIR):
 	@mkdir -p $@
+
+$(DM_AUTO_LD): $(DM_LV2_LD)
+	sed -e 's/0x00010000/0x00000000/g' -e 's/0x10000000/0x00020000/g' $< > $@
 
 $(DM_OBJDIR)/%.o: source/%.c | $(DM_OBJDIR)
 	$(DM_CC) $(DM_CFLAGS) -c $< -o $@
@@ -65,7 +69,7 @@ $(DM_OBJDIR)/prx_entry.o: prx/prx_entry.c | $(DM_OBJDIR)
 $(DM_OBJDIR)/vsh_stubs.o: prx/vsh_stubs.S | $(DM_OBJDIR)
 	$(DM_CC) $(DM_ASFLAGS) -c $< -o $@
 
-$(DM_ELF): $(DM_OBJS) $(DM_PRXOBJS)
+$(DM_ELF): $(DM_AUTO_LD) $(DM_OBJS) $(DM_PRXOBJS)
 	$(DM_LD) $(DM_LDFLAGS) $(DM_OBJS) $(DM_PRXOBJS) $(DM_LIBGCC) -o $@
 	$(DM_SPRXLNK) $@
 
@@ -74,7 +78,7 @@ $(DM_SPRX): $(DM_ELF)
 	@ls -l $@
 
 clean-prx:
-	rm -rf $(DM_OBJDIR) $(DM_ELF) $(DM_SPRX)
+	rm -rf $(DM_OBJDIR) $(DM_AUTO_LD) $(DM_ELF) $(DM_SPRX)
 
 clean: clean-prx
 
