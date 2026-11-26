@@ -180,7 +180,7 @@ void dm_log(const char *msg)
     uint64_t wr = 0;
     while (msg[len]) len++;
     /* O_WRONLY | O_CREAT | O_APPEND = 0x401 */
-    if ((int32_t)dm_sc(SC_FS_OPEN, P("/dev_hdd0/tmp/dmmusic.log"), 0x401, P(&f), 0666, 0, 0, 0) == 0 && f >= 0) {
+    if ((int32_t)dm_sc(SC_FS_OPEN, P("/dev_hdd0/tmp/dmmusic.log"), 0x241, P(&f), 0666, 0, 0, 0) == 0 && f >= 0) {
         dm_sc(SC_FS_WRITE, (uint64_t)(int64_t)f, P(msg), len, P(&wr), 0, 0, 0);
         dm_sc(SC_FS_CLOSE, (uint64_t)(int64_t)f, 0, 0, 0, 0, 0, 0);
     }
