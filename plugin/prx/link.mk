@@ -57,7 +57,7 @@ DM_CFLAGS  := -O2 -mcpu=cell -ffunction-sections -fdata-sections \
               -fno-builtin -fno-stack-protector -Wall \
               -Iinclude -I$(PSL1GHT)/ppu/include
 DM_ASFLAGS := -mcpu=cell -Iinclude -I$(PSL1GHT)/ppu/include
-DM_LDFLAGS := -nostartfiles -nostdlib -Wl,-q -Wl,-T,prx/prx.ld -Wl,-e,module_start
+DM_LDFLAGS := -nostartfiles -nostdlib -Wl,-q -Wl,--script=prx/prx.ld -Wl,-e,module_start
 
 DM_ELF     := prx/dmmusic.elf
 DM_SPRX    := dmmusic.sprx
