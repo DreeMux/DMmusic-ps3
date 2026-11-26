@@ -28,8 +28,11 @@ const char dmmusic_copyright[] __attribute__((used)) = DMMUSIC_COPYRIGHT;
 
 typedef struct {
     uint16_t modattribute;
-    uint8_t  modversion;
-    char     modname;
+    uint8_t  modversion_major;
+    uint8_t  modversion_minor;
+    char     n0, n1, n2, n3, n4, n5, n6, n7, n8, n9;
+    char     n10, n11, n12, n13, n14, n15, n16, n17, n18, n19;
+    char     n20, n21, n22, n23, n24, n25, n26;
     uint8_t  terminal;
     void    *gp_value;
     void    *ent_top;
@@ -46,8 +49,10 @@ extern uint32_t _dm_stub_end;
 const _scemoduleinfo module_info
     __attribute__((section(".rodata.sceModuleInfo"), used)) = {
     0,
-    { 1, 0 },
-    "DMmusic",
+    1, 0,
+    'D','M','m','u','s','i','c',0,0,0,
+    0,0,0,0,0,0,0,0,0,0,
+    0,0,0,0,0,0,0,
     0,
     0,
     &_dm_ent_top,
@@ -63,7 +68,7 @@ typedef struct {
     uint32_t version;
     uint32_t sdk_version;
     uint32_t module_info;
-    uint32_t reserved;
+    uint32_t r0, r1, r2, r3, r4;
 } _sys_prx_param_t;
 
 const _sys_prx_param_t _sys_proc_prx_param
@@ -73,5 +78,5 @@ const _sys_prx_param_t _sys_proc_prx_param
     0x00000001,
     0x00400001,
     0,
-    { 0, 0, 0, 0, 0 }
+    0, 0, 0, 0, 0
 };
