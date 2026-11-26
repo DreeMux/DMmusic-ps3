@@ -21,8 +21,6 @@
 # on variable names used by the parent Makefile.
 #
 # Usage:  make -C plugin clean all
-# Set USE_PSL1GHT_STUBS=1 to link -laudio -lio instead of prx/vsh_stubs.S
-# (fallback if the hand-written stubs are rejected by sprxlinker).
 
 PS3DEV   ?= /usr/local/ps3dev
 PSL1GHT  ?= $(PS3DEV)
@@ -32,12 +30,8 @@ DM_BIN     := $(PS3DEV)/bin
 DM_PPUBIN  := $(PS3DEV)/ppu/bin
 export PATH := $(DM_BIN):$(DM_PPUBIN):$(PATH)
 
-DM_PPULIB  := $(PS3DEV)/ppu/powerpc64-ps3-elf/lib
-DM_SPRX_O  := $(DM_PPULIB)/lv2-sprx.o
-DM_LV2_LD  := $(DM_PPULIB)/lv2.ld
-
 DM_CC      := ppu-gcc
-DM_STRIP   := ppu-strip
+DM_LD      := ppu-ld
 DM_SPRXLNK := $(DM_BIN)/sprxlinker
 DM_FSELF   := $(DM_BIN)/fself
 DM_MAKESELF:= $(DM_BIN)/make_self
@@ -45,19 +39,14 @@ DM_MAKESELF:= $(DM_BIN)/make_self
 DM_SRC     := $(wildcard source/*.c)
 DM_OBJDIR  := prx/obj
 DM_OBJS    := $(patsubst source/%.c,$(DM_OBJDIR)/%.o,$(DM_SRC))
-DM_PRXOBJS := $(DM_OBJDIR)/prx_entry.o
-ifneq ($(USE_PSL1GHT_STUBS),1)
-DM_PRXOBJS += $(DM_OBJDIR)/vsh_stubs.o
-DM_LIBS    := -lgcc
-else
-DM_LIBS    := -L$(PSL1GHT)/ppu/lib -laudio -lio -lsysutil -llv2 -lgcc
-endif
+DM_PRXOBJS := $(DM_OBJDIR)/prx_entry.o $(DM_OBJDIR)/vsh_stubs.o
+DM_LIBGCC  := $(shell $(DM_CC) -print-libgcc-file-name)
 
 DM_CFLAGS  := -O2 -mcpu=cell -ffunction-sections -fdata-sections \
               -fno-builtin -fno-stack-protector -Wall \
               -Iinclude -I$(PSL1GHT)/ppu/include
 DM_ASFLAGS := -mcpu=cell -Iinclude -I$(PSL1GHT)/ppu/include
-DM_LDFLAGS := -nostartfiles -nostdlib -Wl,-q -Wl,--script=prx/prx.ld -Wl,-e,module_start
+DM_LDFLAGS := -q -T prx/prx.ld -e module_start
 
 DM_ELF     := prx/dmmusic.elf
 DM_SPRX    := dmmusic.sprx
@@ -77,7 +66,7 @@ $(DM_OBJDIR)/vsh_stubs.o: prx/vsh_stubs.S | $(DM_OBJDIR)
 	$(DM_CC) $(DM_ASFLAGS) -c $< -o $@
 
 $(DM_ELF): $(DM_OBJS) $(DM_PRXOBJS)
-	$(DM_CC) $(DM_LDFLAGS) $(DM_OBJS) $(DM_PRXOBJS) $(DM_LIBS) -o $@
+	$(DM_LD) $(DM_LDFLAGS) $(DM_OBJS) $(DM_PRXOBJS) $(DM_LIBGCC) -o $@
 	$(DM_SPRXLNK) $@
 
 $(DM_SPRX): $(DM_ELF)
