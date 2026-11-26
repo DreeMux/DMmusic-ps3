@@ -73,6 +73,8 @@ int dm_thread_create(dm_thread_t *t, dm_thread_fn fn, uint64_t arg,
 int dm_thread_join(dm_thread_t t) { return pthread_join((pthread_t)t, NULL); }
 void dm_thread_exit(void) { }
 void dm_sleep_ms(uint32_t ms) { usleep(ms * 1000u); }
+void dm_log(const char *msg) { (void)msg; }
+void dm_log_hex(const char *label, uint32_t val) { (void)label; (void)val; }
 
 #else
 /* ===================== PS3 PPU back end (LV2 syscalls) ================== */
