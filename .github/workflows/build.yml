@@ -150,9 +150,8 @@ jobs:
         if: steps.plugin_link.outcome == 'success'
         continue-on-error: true
         run: |
-          ls -l plugin/dmmusic.sprx
-          find $PS3DEV -iname "*prx*" -o -iname "*sprx*" 2>/dev/null | head -n 40
-          $PS3DEV/bin/scetool -i plugin/dmmusic.sprx || true
+          ls -la $PS3DEV/bin/
+          xxd -l 128 plugin/dmmusic.sprx || od -tx1 -N 128 plugin/dmmusic.sprx
           test -s plugin/dmmusic.sprx || { echo "::error::plugin/dmmusic.sprx is missing or empty"; exit 1; }
 
       - name: Upload dmmusic.sprx
