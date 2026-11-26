@@ -234,11 +234,14 @@ static void worker_thread(uint64_t arg)
     uint32_t i, tick = 0, cmds;
     (void)arg;
 
+    dm_log("worker_thread: entered\n");
+
     /* Let the XMB finish booting before touching audio. */
     for (i = 0; i < BOOT_DELAY_MS / 100u && g_running; i++)
         dm_sleep_ms(100);
 
     if (g_running) {
+        dm_log("worker_thread: starting engine\n");
         dm_pad_reset();
         dm_engine_start();
         queue_watch();
@@ -267,26 +270,17 @@ __attribute__((used))
 int module_start(uint64_t args, void *argp)
 {
     (void)args; (void)argp;
+    dm_log("module_start: called\n");
     if (g_worker_valid)
         return DM_PRX_START_OK;
     g_running = 1;
     g_sig_valid = 0;
     if (dm_thread_create(&g_worker, worker_thread, 0, WORKER_PRIO, WORKER_STACK, "dmmusic_main") != 0) {
+        dm_log("module_start: thread_create FAILED\n");
         g_running = 0;
         return DM_PRX_START_OK;      /* stay loadable; nothing is running */
     }
+    dm_log("module_start: thread_create OK\n");
     g_worker_valid = 1;
     return DM_PRX_START_OK;
-}
-
-__attribute__((used))
-int module_stop(uint64_t args, void *argp)
-{
-    (void)args; (void)argp;
-    g_running = 0;
-    if (g_worker_valid) {
-        dm_thread_join(g_worker);
-        g_worker_valid = 0;
-    }
-    return DM_PRX_STOP_OK;
 }
